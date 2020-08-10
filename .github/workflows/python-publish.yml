@@ -1,0 +1,83 @@
+name: Upload Python Package
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Get full Python version
+      id: full-python-version
+      run: |
+        echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+
+    - name: Install Poetry
+      run: |
+        curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+        echo "::add-path::$HOME/.poetry/bin"
+
+    - name: Set up cache
+      uses: actions/cache@v2
+      id: cache
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Ensure cache is healthy
+      if: steps.cache.outputs.cache-hit == 'true'
+      run: |
+        poetry run pip --version || rm -rf .venv
+
+    - name: Get tag
+      id: tag
+      run: |
+        echo ::set-output name=tag::${GITHUB_REF#refs/tags/}
+
+    - name: Build dist
+      run: |
+        make dist
+
+    - name: Get artifacts, ensuring they match the tag version
+      id: artifacts
+      run: |
+        set -euo pipefail
+        echo ::set-output name=tgz::$(ls dist/*-${{ steps.tag.outputs.tag }}.tar.gz | head -1 | xargs basename)
+        echo ::set-output name=whl::$(ls dist/*-${{ steps.tag.outputs.tag }}-*.whl | head -1 | xargs basename)
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.tag }}
+        release_name: ${{ steps.tag.outputs.tag }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: dist/${{ steps.artifacts.outputs.tgz }}
+        asset_name: ${{ steps.artifacts.outputs.tgz }}
+        asset_content_type: application/gzip
+
+    - name: Publish to package repository
+      env:
+        POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        make publish

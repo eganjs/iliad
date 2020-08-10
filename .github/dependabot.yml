@@ -1,0 +1,9 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    labels:
+      - "automerge" # For use with https://github.com/chdsbd/kodiak
+    open-pull-requests-limit: 10
