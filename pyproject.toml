@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "iliad"
-version = "0.1.0"
+version = "0.2.0"
 description = "A monorepo tool for Poetry"
 authors = ["Joseph Egan <joseph.s.egan@gmail.com>"]
 license = "MIT"
@@ -9,8 +9,12 @@ repository = "https://github.com/eganjs/iliad"
 
 readme = "README.md"
 
+[tool.poetry.scripts]
+iliad = "iliad.cli:cli"
+
 [tool.poetry.dependencies]
 python = "^3.6"
+click = "^7.1.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.0"
