@@ -1,4 +1,3 @@
-import pytest
 from click.testing import CliRunner
 
 from iliad.cli import main
@@ -17,4 +16,4 @@ def test_version() -> None:
     result = runner.invoke(main, ["--version"])
 
     assert result.exit_code == 0
-    assert result.output == "iliad, version 0.2.0\n"
+    assert result.output == "0.3.0\n"
