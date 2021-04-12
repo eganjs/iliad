@@ -10,7 +10,7 @@ repository = "https://github.com/eganjs/iliad"
 readme = "README.md"
 
 [tool.poetry.scripts]
-iliad = "iliad.cli:cli"
+iliad = "iliad.cli:main"
 
 [tools.black]
 line-length = 120
