@@ -2,9 +2,9 @@ name: Python Package
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   lint:
@@ -13,10 +13,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up Python 3.8
+    - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: 3.9
 
     - name: Get full Python version
       id: full-python-version
@@ -25,8 +25,9 @@ jobs:
 
     - name: Install Poetry
       run: |
-        curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-        echo "::add-path::$HOME/.poetry/bin"
+        pip install -U pip
+        pip install wheel
+        pip install poetry
 
     - name: Set up cache
       uses: actions/cache@v2
@@ -56,7 +57,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu, macos, windows]
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.6, 3.7, 3.8, 3.9]
 
     steps:
     - uses: actions/checkout@v2
@@ -71,17 +72,11 @@ jobs:
       run: |
         echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
 
-    - name: Install Poetry using bash
-      if: matrix.os == 'ubuntu' || matrix.os == 'macos'
+    - name: Install Poetry
       run: |
-        curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-        echo "::add-path::$HOME/.poetry/bin"
-
-    - name: Install Poetry using pwsh
-      if: matrix.os == 'windows'
-      run: |
-        (Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py -UseBasicParsing).Content | python
-        echo "::add-path::$HOME/.poetry/bin"
+        pip install -U pip
+        pip install wheel
+        pip install poetry
 
     - name: Set up cache
       uses: actions/cache@v2
