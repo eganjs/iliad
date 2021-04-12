@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "iliad"
-version = "0.2.0"
+version = "0.3.0"
 description = "A monorepo tool for Poetry"
 authors = ["Joseph Egan <joseph.s.egan@gmail.com>"]
 license = "MIT"
@@ -10,7 +10,7 @@ repository = "https://github.com/eganjs/iliad"
 readme = "README.md"
 
 [tool.poetry.scripts]
-iliad = "iliad.cli:cli"
+iliad = "iliad.cli:main"
 
 [tools.black]
 line-length = 120
