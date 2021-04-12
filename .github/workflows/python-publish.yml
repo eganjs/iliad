@@ -12,10 +12,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up Python 3.8
+    - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: 3.9
 
     - name: Get full Python version
       id: full-python-version
@@ -24,8 +24,9 @@ jobs:
 
     - name: Install Poetry
       run: |
-        curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-        echo "::add-path::$HOME/.poetry/bin"
+        pip install -U pip
+        pip install wheel
+        pip install poetry
 
     - name: Set up cache
       uses: actions/cache@v2
