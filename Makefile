@@ -1,17 +1,22 @@
-.PHONEY: lint fmt test publish
+PACKAGES = iliad tests
 
+.PHONY: lint
 lint: .venv
-	poetry run flake8 --exclude .venv
-	poetry run isort --check-only --profile black .
-	poetry run black --check --diff .
+	poetry run mypy $(PACKAGES)
+	poetry run flake8 $(PACKAGES)
+	poetry run isort --check-only --profile black $(PACKAGES)
+	poetry run black --check --diff $(PACKAGES)
 
+.PHONY: fmt
 fmt: .venv
-	poetry run isort --profile black .
-	poetry run black .
+	poetry run isort --profile black $(PACKAGES)
+	poetry run black $(PACKAGES)
 
+.PHONY: test
 test: .venv
 	poetry run pytest --verbose --capture=no
 
+.PHONY: publish
 publish: dist
 	poetry publish
 
@@ -23,5 +28,5 @@ dist: .venv
 	@touch -c .venv
 
 poetry.lock: pyproject.toml
-	poetry update
+	poetry lock
 	@touch -c poetry.lock
