@@ -1,3 +1,5 @@
+all: lint test
+
 PACKAGES = iliad tests
 
 .PHONY: lint
@@ -25,6 +27,7 @@ dist: .venv
 
 .venv: poetry.lock
 	poetry install
+	cd .venv/lib/*/site-packages/tomlkit ; touch py.typed
 	@touch -c .venv
 
 poetry.lock: pyproject.toml
