@@ -4,6 +4,7 @@ from textwrap import dedent
 from click.testing import CliRunner
 
 from iliad.cli import cli
+from iliad.find import find_root
 
 
 def test_version() -> None:
@@ -46,6 +47,8 @@ def mk_poetry_at(path: Path) -> None:
 
 
 def test_list__success__lists_only_poetry_projects() -> None:
+    find_root.cache_clear()
+
     runner = CliRunner()
     with runner.isolated_filesystem():
         (Path.cwd() / ".git").mkdir()
@@ -70,7 +73,32 @@ def test_list__success__lists_only_poetry_projects() -> None:
     )
 
 
+def test_list__success__respect_gitignore() -> None:
+    find_root.cache_clear()
+
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        (Path.cwd() / ".git").mkdir()
+        (Path.cwd() / ".gitignore").write_text(".venv\n")
+        mk_poetry_at(Path.cwd() / "theta")
+        mk_poetry_at(Path.cwd() / ".venv" / "iota")
+        mk_poetry_at(Path.cwd() / "project" / "kappa")
+        mk_poetry_at(Path.cwd() / "project" / ".venv" / "lambda")
+
+        result = runner.invoke(cli, ["list"], catch_exceptions=False)
+
+    assert result.exit_code == 0
+    assert result.output == dedent(
+        """\
+        project/kappa
+        theta
+        """
+    )
+
+
 def test_list__fail__cant_find_root() -> None:
+    find_root.cache_clear()
+
     runner = CliRunner()
     with runner.isolated_filesystem():
         mk_poetry_at(Path.cwd() / "alpha")
