@@ -1,6 +1,5 @@
 from pathlib import Path
 from textwrap import dedent
-from time import sleep
 from typing import Iterator
 
 from click import style

@@ -2,11 +2,10 @@ __all__ = [
     "cli",
 ]
 
-from io import BufferedReader
 from subprocess import PIPE, Popen
 from typing import IO, AnyStr, Iterator, List, Optional
 
-from click import argument, echo, get_terminal_size, group, secho, style, version_option
+from click import argument, echo, group, secho, style, version_option
 from reprint import output
 
 from iliad.find import find_pyprojects
@@ -25,10 +24,11 @@ def _list() -> None:
 
 
 def io_to_formatted_str(io: IO[AnyStr]) -> Iterator[str]:
-    return (
-        (line.decode() if isinstance(line, bytes) else line).rstrip()
-        for line in io.readlines()
-    )
+    for line in io.readlines():
+        if isinstance(line, bytes):
+            yield line.decode().rstrip()
+        else:
+            yield line.rstrip()
 
 
 @cli.command("run")
@@ -95,9 +95,11 @@ def _run(args: List[str]) -> None:
             echo(f"{prefix} failed with return code {process.returncode}")
 
             prefix = f"[{style(project + ':stdout', fg='bright_black')}]"
+            assert process.stdout is not None
             for line in io_to_formatted_str(process.stdout):
                 echo(f"{prefix} {style(line, fg='blue')}")
 
             prefix = f"[{style(project + ':stderr', fg='bright_black')}]"
+            assert process.stderr is not None
             for line in io_to_formatted_str(process.stderr):
                 echo(f"{prefix} {style(line, fg='red')}")
