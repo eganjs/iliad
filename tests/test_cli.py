@@ -159,12 +159,15 @@ def test_run__prints_output_for_failed_commands(runner: CliRunner) -> None:
     )
 
     assert (
-        dedent(
-            f"""\
-            [//beta/delta] failed with return code {expected_exit_code}
-            [//beta/delta:stderr] ls: cannot access 'file_only_in_alpha': No such file or directory
-            """
-        )
+        f"[//beta/delta] failed with return code {expected_exit_code}" in result.output
+    )
+    assert (
+        # linux
+        "[//beta/delta:stderr] ls: cannot access 'file_only_in_alpha': No such file or directory"
+        in result.output
+        or
+        # macos
+        "[//beta/delta:stderr] ls: file_only_in_alpha: No such file or directory"
         in result.output
     )
 
