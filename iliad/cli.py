@@ -6,7 +6,6 @@ from subprocess import PIPE, Popen
 from typing import IO, AnyStr, Iterator, List, Optional
 
 from click import argument, echo, group, option, secho, style, version_option
-from reprint import output
 
 from iliad.find import find_pyprojects
 
@@ -38,6 +37,27 @@ def io_to_formatted_str(io: IO[AnyStr]) -> Iterator[str]:
             yield line.rstrip()
 
 
+class EchoList:
+    def __init__(self, n: int):
+        self.lines: List[str] = [""] * n
+        self.first_time: bool = True
+
+    def reecho(self) -> None:
+        if not self.first_time:
+            # move cursor to top of lines to be updated
+            echo(f"\033[{len(self.lines) + 1}A")
+        else:
+            self.first_time = False
+
+        for item in self.lines:
+            # clear line and print updated text
+            echo(f"\r\033[K{item}")
+
+    def __setitem__(self, key: int, value: str) -> None:
+        self.lines[key] = value
+        self.reecho()
+
+
 @cli.command("run")
 @argument("args", nargs=-1)
 @option(
@@ -66,48 +86,48 @@ def _run(args: List[str], selector: str) -> None:
 
     failed_processes = dict()
 
-    with output(initial_len=len(projects_index)) as output_lines:
+    output_lines = EchoList(len(projects_index))
+
+    for idx, project in projects_index:
+        output_lines[idx] = f"[{style('initializing', fg='bright_black')}] {project}"
+
+    processes = dict()
+
+    for idx, project in projects_index:
+        processes[project] = Popen(
+            ["poetry", "run", *args],
+            cwd=projects[project].parent,
+            stdout=PIPE,
+            stderr=PIPE,
+        )
+        output_lines[idx] = f"[{style('in progress', fg='blue')}] {project}"
+
+    while processes:
+        remaining_processes = dict()
 
         for idx, project in projects_index:
-            output_lines[
-                idx
-            ] = f"[{style('initializing', fg='bright_black')}] {project}"
+            if project not in processes:
+                continue
 
-        processes = dict()
+            process = processes[project]
 
-        for idx, project in projects_index:
-            processes[project] = Popen(
-                ["poetry", "run", *args],
-                cwd=projects[project].parent,
-                stdout=PIPE,
-                stderr=PIPE,
-            )
-            output_lines[idx] = f"[{style('in progress', fg='blue')}] {project}"
+            return_code: Optional[int] = process.poll()
+            if return_code is not None:
 
-        while processes:
-            remaining_processes = dict()
-
-            for idx, project in projects_index:
-                if project not in processes:
-                    continue
-
-                process = processes[project]
-
-                return_code: Optional[int] = process.poll()
-                if return_code is not None:
-
-                    if return_code == 0:
-                        output_lines[idx] = f"[{style('done', fg='green')}] {project}"
-                    else:
-                        output_lines[
-                            idx
-                        ] = f"[{style(f'failed({return_code})', fg='red')}] {project}"
-                        failed_processes[project] = process
-
+                if return_code == 0:
+                    output_lines[idx] = f"[{style('done', fg='green')}] {project}"
                 else:
-                    remaining_processes[project] = process
+                    output_lines[
+                        idx
+                    ] = f"[{style(f'failed({return_code})', fg='red')}] {project}"
+                    failed_processes[project] = process
 
-            processes = remaining_processes
+            else:
+                remaining_processes[project] = process
+
+        processes = remaining_processes
+
+    del output_lines
 
     if failed_processes:
         secho("\nfailures:", bold=True)

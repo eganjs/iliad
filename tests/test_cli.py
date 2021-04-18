@@ -4,7 +4,6 @@ from textwrap import dedent
 from typing import Iterator
 from uuid import uuid4
 
-from click import style
 from click.testing import CliRunner
 from pytest import fixture
 
@@ -128,10 +127,10 @@ def test_run__runs_command_for_each_poetry_project(runner: CliRunner) -> None:
 
     assert result.exit_code == 0
 
-    assert f"[{style('done', fg='green')}] //alpha" in result.output
+    assert "[done] //alpha" in result.output
     assert (Path.cwd() / "alpha" / "new_file").is_file()
 
-    assert f"[{style('done', fg='green')}] //beta/delta" in result.output
+    assert "[done] //beta/delta" in result.output
     assert (Path.cwd() / "beta" / "delta" / "new_file").is_file()
 
 
@@ -149,12 +148,9 @@ def test_run__prints_output_for_failed_commands(runner: CliRunner) -> None:
 
     assert result.exit_code == 0
 
-    assert f"[{style('done', fg='green')}] //alpha" in result.output
+    assert "[done] //alpha" in result.output
 
-    assert (
-        f"[{style(f'failed({expected_exit_code})', fg='red')}] //beta/delta"
-        in result.output
-    )
+    assert f"[failed({expected_exit_code})] //beta/delta" in result.output
 
     assert (
         f"[//beta/delta] failed with return code {expected_exit_code}" in result.output
@@ -182,7 +178,6 @@ def test_run__only_runs_command_for_projects_matching_selector(
 
     assert result.exit_code == 0
 
-    assert f"[{style('done', fg='green')}] //alpha" not in result.output
-
-    assert f"[{style('done', fg='green')}] //beta/delta" in result.output
-    assert f"[{style('done', fg='green')}] //beta/gamma" in result.output
+    assert "[done] //alpha" not in result.output
+    assert "[done] //beta/delta" in result.output
+    assert "[done] //beta/gamma" in result.output
