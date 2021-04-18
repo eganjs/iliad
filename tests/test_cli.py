@@ -145,6 +145,8 @@ def test_run__prints_output_for_failed_commands(runner: CliRunner) -> None:
         cli, ["run", "ls", "file_only_in_alpha"], catch_exceptions=False
     )
 
+    print(result.output)
+
     expected_exit_code = run(["ls", str(uuid4())], stdout=PIPE, stderr=PIPE).returncode
 
     assert result.exit_code == 0
