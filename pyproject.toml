@@ -19,6 +19,7 @@ line-length = 120
 python = "^3.6"
 click = "^7.1.2"
 tomlkit = "^0.7.0"
+reprint = "^0.6.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.0"
