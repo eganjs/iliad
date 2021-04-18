@@ -1,6 +1,8 @@
 from pathlib import Path
+from subprocess import run
 from textwrap import dedent
 from typing import Iterator
+from uuid import uuid4
 
 from click import style
 from click.testing import CliRunner
@@ -143,18 +145,23 @@ def test_run__prints_output_for_failed_commands(runner: CliRunner) -> None:
         cli, ["run", "ls", "file_only_in_alpha"], catch_exceptions=False
     )
 
+    expected_exit_code = run(["ls", str(uuid4())], capture_output=True).returncode
+
     assert result.exit_code == 0
 
     assert f"[{style('done', fg='green')}] //alpha" in result.output
 
-    assert f"[{style('failed(2)', fg='red')}] //beta/delta" in result.output
+    assert (
+        f"[{style(f'failed({expected_exit_code})', fg='red')}] //beta/delta"
+        in result.output
+    )
 
     assert (
         dedent(
-            """\
-        [//beta/delta] failed with return code 2
-        [//beta/delta:stderr] ls: cannot access 'file_only_in_alpha': No such file or directory
-        """
+            f"""\
+            [//beta/delta] failed with return code {expected_exit_code}
+            [//beta/delta:stderr] ls: cannot access 'file_only_in_alpha': No such file or directory
+            """
         )
         in result.output
     )
