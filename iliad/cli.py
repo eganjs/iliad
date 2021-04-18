@@ -5,7 +5,7 @@ __all__ = [
 from subprocess import PIPE, Popen
 from typing import IO, AnyStr, Iterator, List, Optional
 
-from click import argument, echo, group, secho, style, version_option
+from click import argument, echo, group, option, secho, style, version_option
 from reprint import output
 
 from iliad.find import find_pyprojects
@@ -19,6 +19,13 @@ def cli() -> None:
 
 @cli.command("list")
 def _list() -> None:
+    """
+    Lists the detected projects.
+
+    Uses // to denote the root of the repo.
+
+    Attempts to respect gitignore files.
+    """
     for pyproject in find_pyprojects():
         echo("//" + "/".join(pyproject.parent.parts))
 
@@ -33,13 +40,29 @@ def io_to_formatted_str(io: IO[AnyStr]) -> Iterator[str]:
 
 @cli.command("run")
 @argument("args", nargs=-1)
-def _run(args: List[str]) -> None:
+@option(
+    "--selector",
+    "-s",
+    default="",
+    help="Filter the projects to run the command against using string contains",
+)
+def _run(args: List[str], selector: str) -> None:
+    """
+    Runs a command using `poetry run` in each project.
+
+    Supports -- for escaping flags.
+
+    Commands are run in parallel, concurrency is not limited.
+    """
+
     projects = {
         "//" + "/".join(pyproject.parent.parts): pyproject
         for pyproject in find_pyprojects()
     }
 
-    projects_index = list(enumerate(sorted(projects.keys())))
+    projects_index = list(
+        enumerate(sorted(key for key in projects.keys() if selector in key))
+    )
 
     failed_processes = dict()
 

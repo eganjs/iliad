@@ -158,3 +158,21 @@ def test_run__prints_output_for_failed_commands(runner: CliRunner) -> None:
         )
         in result.output
     )
+
+
+def test_run__only_runs_command_for_projects_matching_selector(
+    runner: CliRunner,
+) -> None:
+    (Path.cwd() / ".git").mkdir()
+    mk_poetry_at(Path.cwd() / "alpha")
+    mk_poetry_at(Path.cwd() / "beta" / "delta")
+    mk_poetry_at(Path.cwd() / "beta" / "gamma")
+
+    result = runner.invoke(cli, ["run", "-s", "beta", "echo"], catch_exceptions=False)
+
+    assert result.exit_code == 0
+
+    assert f"[{style('done', fg='green')}] //alpha" not in result.output
+
+    assert f"[{style('done', fg='green')}] //beta/delta" in result.output
+    assert f"[{style('done', fg='green')}] //beta/gamma" in result.output
