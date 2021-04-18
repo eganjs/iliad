@@ -1,5 +1,5 @@
 from pathlib import Path
-from subprocess import run
+from subprocess import PIPE, run
 from textwrap import dedent
 from typing import Iterator
 from uuid import uuid4
@@ -145,7 +145,7 @@ def test_run__prints_output_for_failed_commands(runner: CliRunner) -> None:
         cli, ["run", "ls", "file_only_in_alpha"], catch_exceptions=False
     )
 
-    expected_exit_code = run(["ls", str(uuid4())], capture_output=True).returncode
+    expected_exit_code = run(["ls", str(uuid4())], stdout=PIPE, stderr=PIPE).returncode
 
     assert result.exit_code == 0
 
