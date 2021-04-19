@@ -7,7 +7,7 @@ from typing import IO, AnyStr, Iterator, List, Optional
 
 from click import argument, echo, group, option, secho, style, version_option
 
-from iliad.find import find_pyprojects
+from iliad.find import find_projects
 
 
 @group()
@@ -25,8 +25,8 @@ def _list() -> None:
 
     Attempts to respect gitignore files.
     """
-    for pyproject in find_pyprojects():
-        echo("//" + "/".join(pyproject.parent.parts))
+    for project in find_projects():
+        echo(project.label)
 
 
 def io_to_formatted_str(io: IO[AnyStr]) -> Iterator[str]:
@@ -75,10 +75,7 @@ def _run(args: List[str], selector: str) -> None:
     Commands are run in parallel, concurrency is not limited.
     """
 
-    projects = {
-        "//" + "/".join(pyproject.parent.parts): pyproject
-        for pyproject in find_pyprojects()
-    }
+    projects = {project.label: project.dir for project in find_projects()}
 
     projects_index = list(
         enumerate(sorted(key for key in projects.keys() if selector in key))
@@ -95,10 +92,7 @@ def _run(args: List[str], selector: str) -> None:
 
     for idx, project in projects_index:
         processes[project] = Popen(
-            ["poetry", "run", *args],
-            cwd=projects[project].parent,
-            stdout=PIPE,
-            stderr=PIPE,
+            ["poetry", "run", *args], cwd=projects[project], stdout=PIPE, stderr=PIPE,
         )
         output_lines[idx] = f"[{style('in progress', fg='blue')}] {project}"
 

@@ -1,6 +1,7 @@
 __all__ = [
     "find_root",
-    "find_pyprojects",
+    "PoetryProject",
+    "find_projects",
 ]
 
 from fnmatch import fnmatch
@@ -10,6 +11,7 @@ from typing import Callable, Dict, Iterator, List
 
 from click import ClickException
 from tomlkit import parse
+from typing_extensions import Final
 
 
 @lru_cache(maxsize=1)
@@ -57,10 +59,22 @@ def has_poetry_config(file: Path) -> bool:
     )
 
 
-def crawl(root: Path) -> Iterator[Path]:
+class PoetryProject:
+    label: Final[str]
+    dir: Final[Path]
+
+    def __init__(self, root: Path, pyproject: Path):
+        self.label = "//" + "/".join(pyproject.parent.relative_to(root).parts)
+        self.dir = pyproject.parent.absolute()
+
+    def __lt__(self, other: "PoetryProject") -> bool:
+        return self.label < other.label
+
+
+def crawl(root: Path) -> Iterator[PoetryProject]:
     def _crawl(
         candidate: Path, ignore_rules: Dict[str, PathPredicate]
-    ) -> Iterator[Path]:
+    ) -> Iterator[PoetryProject]:
         if any(
             rule_matcher(candidate.relative_to(root))
             for rule_matcher in ignore_rules.values()
@@ -71,7 +85,7 @@ def crawl(root: Path) -> Iterator[Path]:
             and candidate.name == "pyproject.toml"
             and has_poetry_config(candidate)
         ):
-            yield candidate.relative_to(root)
+            yield PoetryProject(root, candidate)
         elif candidate.is_dir():
             gitignore = candidate / ".gitignore"
             if gitignore.is_file():
@@ -90,6 +104,7 @@ def crawl(root: Path) -> Iterator[Path]:
     yield from _crawl(root, dict())
 
 
-def find_pyprojects() -> List[Path]:
+@lru_cache(maxsize=1)
+def find_projects() -> List[PoetryProject]:
     root = find_root()
     return sorted(crawl(root))
