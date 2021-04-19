@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "iliad"
-version = "0.4.0"
+version = "0.5.0"
 description = "A monorepo tool for Poetry"
 authors = ["Joseph Egan <joseph.s.egan@gmail.com>"]
 license = "MIT"
