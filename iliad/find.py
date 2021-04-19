@@ -7,7 +7,7 @@ __all__ = [
 from fnmatch import fnmatch
 from functools import lru_cache
 from pathlib import Path
-from typing import Callable, Dict, Iterator, List, Final
+from typing import Callable, Dict, Final, Iterator, List
 
 from click import ClickException
 from tomlkit import parse

@@ -8,7 +8,7 @@ from click.testing import CliRunner
 from pytest import fixture
 
 from iliad.cli import cli
-from iliad.find import find_root, find_projects
+from iliad.find import find_projects, find_root
 
 
 @fixture

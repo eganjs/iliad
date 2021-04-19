@@ -75,10 +75,7 @@ def _run(args: List[str], selector: str) -> None:
     Commands are run in parallel, concurrency is not limited.
     """
 
-    projects = {
-        project.label: project.dir
-        for project in find_projects()
-    }
+    projects = {project.label: project.dir for project in find_projects()}
 
     projects_index = list(
         enumerate(sorted(key for key in projects.keys() if selector in key))
@@ -95,10 +92,7 @@ def _run(args: List[str], selector: str) -> None:
 
     for idx, project in projects_index:
         processes[project] = Popen(
-            ["poetry", "run", *args],
-            cwd=projects[project],
-            stdout=PIPE,
-            stderr=PIPE,
+            ["poetry", "run", *args], cwd=projects[project], stdout=PIPE, stderr=PIPE,
         )
         output_lines[idx] = f"[{style('in progress', fg='blue')}] {project}"
 
