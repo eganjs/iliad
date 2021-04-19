@@ -8,12 +8,13 @@ from click.testing import CliRunner
 from pytest import fixture
 
 from iliad.cli import cli
-from iliad.find import find_root
+from iliad.find import find_root, find_projects
 
 
 @fixture
 def runner() -> Iterator[CliRunner]:
     find_root.cache_clear()
+    find_projects.cache_clear()
 
     cli_runner = CliRunner()
     with cli_runner.isolated_filesystem():
