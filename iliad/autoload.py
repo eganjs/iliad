@@ -4,10 +4,10 @@ __all__ = [
 
 import importlib
 import inspect
-from functools import cached_property
+from functools import lru_cache
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Dict, Iterator, List, Type, TypeVar
+from typing import Any, Iterator, List, Type, TypeVar, Mapping
 
 from click import Command, Context, MultiCommand
 
@@ -43,16 +43,16 @@ def load_instances(t: Type[T], module: str) -> Iterator[T]:
 
 def autoloader_factory(module: str) -> Type[MultiCommand]:
     class CliAutoLoader(MultiCommand):
-        @cached_property
-        def commands(self) -> Dict[str, Command]:
+        @lru_cache(maxsize=1)
+        def commands(self) -> Mapping[str, Command]:
             return {
                 command.name: command for command in load_instances(Command, module)
             }
 
         def list_commands(self, ctx: Context) -> List[str]:
-            return sorted(self.commands.keys())
+            return sorted(self.commands().keys())
 
         def get_command(self, ctx: Context, cmd_name: str) -> Command:
-            return self.commands[cmd_name]
+            return self.commands()[cmd_name]
 
     return CliAutoLoader
