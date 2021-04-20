@@ -7,7 +7,7 @@ import inspect
 from functools import lru_cache
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Iterator, List, Type, TypeVar, Mapping
+from typing import Any, Iterator, List, Mapping, Type, TypeVar
 
 from click import Command, Context, MultiCommand
 
